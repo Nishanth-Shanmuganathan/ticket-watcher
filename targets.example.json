@@ -1,0 +1,20 @@
+[
+  {
+    "id": "odyssey-inpr-2026-08-07",
+    "name": "The Odyssey - INOX LUXE Phoenix - 7 Aug",
+    "url": "https://in.bookmyshow.com/movies/chen/seat-layout/ET00480917/INPR/63998/20260807",
+    "check": "browser",
+    "wait_seconds": 25,
+    "expires": "2026-08-09",
+    "enabled": true
+  },
+  {
+    "id": "odyssey-inpr-2026-08-08",
+    "name": "The Odyssey - INOX LUXE Phoenix - 8 Aug",
+    "url": "https://in.bookmyshow.com/movies/chen/seat-layout/ET00480917/INPR/63998/20260808",
+    "check": "browser",
+    "wait_seconds": 25,
+    "expires": "2026-08-09",
+    "enabled": false
+  }
+]

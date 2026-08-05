@@ -1,0 +1,23 @@
+# /etc/systemd/system/bms-watch.service
+# sudo systemctl daemon-reload && sudo systemctl enable --now bms-watch
+[Unit]
+Description=BookMyShow booking watcher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bms
+WorkingDirectory=/opt/bmswatch
+Environment="bms-9x4kqz7mtv3-dracarys"
+Environment="PUSHOVER_USER=uc45bkqaw1afvob17asciowrrkmbkf"
+Environment="PUSHOVER_TOKEN=ajpey4cpsjoiy9uo2ny1i4x1ookahq"
+Environment="BMS_INTERVAL=60"
+ExecStart=/usr/bin/python3 /opt/bmswatch/bms_watch.py --loop
+Restart=always
+RestartSec=15
+StandardOutput=append:/var/log/bms-watch.log
+StandardError=append:/var/log/bms-watch.log
+
+[Install]
+WantedBy=multi-user.target

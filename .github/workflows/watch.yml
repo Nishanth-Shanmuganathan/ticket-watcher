@@ -1,0 +1,72 @@
+name: BMS Watch
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"    # GitHub's floor; expect 5-15 min in practice
+  workflow_dispatch:          # manual button - use this FIRST
+
+concurrency:
+  group: bms-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Chromium is ~150MB; caching keeps each run near a minute instead of three
+      - name: Cache Chromium
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-v1
+
+      - name: Install Playwright
+        run: |
+          pip install --quiet playwright
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != "true" ]; then
+            python -m playwright install --with-deps chromium
+          else
+            python -m playwright install-deps chromium
+          fi
+
+      - name: Check targets
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+        run: python bms_watch.py --once
+
+      # Screenshots are how you diagnose a silent failure. Keep them briefly.
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ github.run_number }}
+          path: probe/
+          retention-days: 2
+          if-no-files-found: ignore
+
+      - name: Persist state
+        if: always()
+        run: |
+          git config user.name  "bms-watch"
+          git config user.email "bms-watch@users.noreply.github.com"
+          git add state.json || true
+          git diff --staged --quiet && exit 0
+          git commit -m "state: $(date -u +%FT%TZ)"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            sleep 5
+          done
+          exit 1
